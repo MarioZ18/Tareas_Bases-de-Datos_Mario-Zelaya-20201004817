@@ -1,0 +1,7 @@
+Buenas noches profesora espero que se encuentre bien.
+
+La presente nota es para hacerle saber el objetivo de enviar dos archivos. El arcivo "Tarea 1_..." sería el script
+del ejercicio tal cual se encuentra en el PDF y el archivo "Tarea 1_Mejorado_..." sería el script del ejercicio con
+el análisis que le comenté en cuanto a la cardinalidad de algunas entidades.
+
+Sin otro motivo, espero que tenga buena noche.
