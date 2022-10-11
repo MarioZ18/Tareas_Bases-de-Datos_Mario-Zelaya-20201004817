@@ -1,0 +1,273 @@
+--Ejercicio 1: Bloques anónimos
+--  Inciso a
+SET SERVEROUTPUT ON
+DECLARE
+ CURSOR C1 IS SELECT*FROM EMPLOYEES;
+BEGIN
+  FOR i IN C1 LOOP
+      IF i.FIRST_NAME='Peter' and i.LAST_NAME='Tucker' THEN
+          RAISE_APPLICATION_ERROR(-20000,'No puede ver el sueldo del jefe');
+          
+      ELSE 
+          DBMS_OUTPUT.PUT_LINE(i.FIRST_NAME||' '||i.LAST_NAME||' - L.'||i.SALARY);
+      END IF;
+  END LOOP;
+END;
+
+
+
+--  Inciso b
+SET SERVEROUTPUT ON
+DECLARE
+ CURSOR C2(DEP_ID NUMBER) IS SELECT*FROM EMPLOYEES
+ WHERE DEP_ID=DEPARTMENT_ID;
+ cant NUMBER;
+BEGIN
+  FOR i IN C2(10) LOOP
+     SELECT COUNT(i.EMPLOYEE_ID) INTO cant
+     FROM EMPLOYEES;
+    
+     DBMS_OUTPUT.PUT_LINE('La cantidad de empleados de ese departamento es:'||cant);
+      
+  END LOOP;
+
+END;
+
+
+--  Inciso c
+SET SERVEROUTPUT ON
+DECLARE
+ CURSOR C3 IS SELECT*FROM EMPLOYEES FOR UPDATE;
+ empl EMPLOYEES%ROWTYPE;
+BEGIN
+  OPEN C3;
+  DBMS_OUTPUT.PUT_LINE('El nuevo salario sería: ');
+  LOOP
+    FETCH C3 INTO empl;
+        EXIT WHEN C3%NOTFOUND;
+        IF empl.SALARY>8000 THEN
+            UPDATE EMPLOYEES SET SALARY=SALARY*1.02 WHERE CURRENT OF C3;
+        ELSE
+            IF empl.SALARY<8000 THEN
+                UPDATE EMPLOYEES SET SALARY=SALARY*1.03 WHERE CURRENT OF C3;
+            END IF;
+        END IF;
+        DBMS_OUTPUT.PUT_LINE(empl.FIRST_NAME||' '||empl.LAST_NAME||' - L.'||empl.SALARY);
+  END LOOP;
+END;
+
+
+
+
+
+
+--Ejercicio 2: Funciones
+--  Inciso a
+CREATE OR REPLACE FUNCTION CREAR_REGION
+    (Reg_name IN REGIONS.REGION_NAME%TYPE)
+RETURN NUMBER
+IS
+  New_id NUMBER:=0;
+  
+BEGIN
+   SELECT MAX(REGION_ID) INTO New_id FROM REGIONS;
+   New_id:=New_id+1;
+   INSERT INTO REGIONS VALUES ( New_id , Reg_name);    
+   RETURN New_id;
+EXCEPTION
+    WHEN VALUE_ERROR THEN
+       DBMS_OUTPUT.PUT_line('Debe de ingresar una palabra');
+END;
+
+
+SET SERVEROUTPUT ON
+DECLARE
+  N_ID NUMBER;
+BEGIN
+  
+  N_ID:=CREAR_REGION('Region Test');
+ DBMS_OUTPUT.PUT_LINE('El codigo asignado a esa región es: '||N_ID);
+END;
+
+
+
+
+--Ejercicio 3: Procedimientos
+--  Inciso a
+CREATE OR REPLACE PROCEDURE CALCULADORA 
+(OPERACION VARCHAR2,
+    num1 NUMBER,
+    num2 NUMBER)
+IS
+  res NUMBER;
+ 
+BEGIN
+    IF OPERACION='SUMA' THEN 
+        res:=num1+num2;
+    ELSE 
+        IF OPERACION='RESTA'THEN 
+          res:=num1-num2;
+        ELSE
+            IF OPERACION='MULTIPLICACION' THEN 
+              res:=num1*num2;
+            ELSE
+                IF OPERACION='DIVISION'  THEN 
+                  res:=num1/num2;
+                ELSE
+                    RAISE_APPLICATION_ERROR(-20000,'Operación no Existente');
+                END IF;
+            END IF;
+        END IF;
+    END IF;
+   
+   DBMS_OUTPUT.PUT_line('El resultado es:'||res);
+EXCEPTION
+    WHEN ZERO_DIVIDE THEN
+    DBMS_OUTPUT.PUT_line('No se puede dividir entre cero');
+    
+    WHEN VALUE_ERROR THEN
+    DBMS_OUTPUT.PUT_line('Debe de ingresar un valor numérico');
+    
+    WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_line('Error Desconocido');
+
+END;
+
+SET SERVEROUTPUT ON
+DECLARE
+  op VARCHAR2(20);
+  num1 NUMBER;
+  num2 NUMBER;
+BEGIN
+  op:='DIVISION';
+  num1:=90;
+  num2:=0;
+  CALCULADORA(op,num1,num2);
+END;
+
+
+--  Inciso b
+--Creación de la tabla
+/*CREATE TABLE 
+EMPLOYEES_COPIA 
+ (EMPLOYEE_ID NUMBER (6,0) PRIMARY KEY, 
+FIRST_NAME VARCHAR2(20 BYTE), 
+LAST_NAME VARCHAR2(25 BYTE), 
+EMAIL VARCHAR2(25 BYTE), 
+PHONE_NUMBER VARCHAR2(20 BYTE), 
+HIRE_DATE DATE, 
+JOB_ID VARCHAR2(10 BYTE), 
+SALARY NUMBER(8,2), 
+COMMISSION_PCT NUMBER(2,2), 
+MANAGER_ID NUMBER(6,0), 
+DEPARTMENT_ID NUMBER(4,0)
+ );*/
+CREATE OR REPLACE PROCEDURE COPIA_E     
+IS
+  CURSOR C_CE IS SELECT*FROM EMPLOYEES;
+    C_EMPLOYEE_ID NUMBER (6,0); 
+    C_FIRST_NAME VARCHAR2(20 BYTE);
+    C_LAST_NAME VARCHAR2(25 BYTE);
+    C_EMAIL VARCHAR2(25 BYTE); 
+    C_PHONE_NUMBER VARCHAR2(20 BYTE);
+    C_HIRE_DATE DATE;
+    C_JOB_ID VARCHAR2(10 BYTE); 
+    C_SALARY NUMBER(8,2);
+    C_COMMISSION_PCT NUMBER(2,2);
+    C_MANAGER_ID NUMBER(6,0);
+    C_DEPARTMENT_ID NUMBER(4,0);
+    
+BEGIN
+    FOR i IN C_CE LOOP
+         C_EMPLOYEE_ID:=i.EMPLOYEE_ID;
+         C_FIRST_NAME:=i.FIRST_NAME;
+         C_LAST_NAME:=i.LAST_NAME;
+         C_EMAIL:=i.EMAIL;
+         C_PHONE_NUMBER:=i.PHONE_NUMBER;
+         C_HIRE_DATE:=i.HIRE_DATE;
+         C_JOB_ID:=i.JOB_ID;
+         C_SALARY:=i.SALARY;
+         C_COMMISSION_PCT:=i.COMMISSION_PCT;
+         C_MANAGER_ID:=i.MANAGER_ID;
+         C_DEPARTMENT_ID:=i.DEPARTMENT_ID;
+         
+     INSERT INTO EMPLOYEES_COPIA VALUES (C_EMPLOYEE_ID, C_FIRST_NAME,C_LAST_NAME,C_EMAIL ,C_PHONE_NUMBER ,
+                        C_HIRE_DATE ,C_JOB_ID ,C_SALARY ,C_COMMISSION_PCT ,C_MANAGER_ID ,C_DEPARTMENT_ID);
+    
+    END LOOP;
+   
+   DBMS_OUTPUT.PUT_line('Carga Finalizada');
+EXCEPTION
+
+    WHEN dup_val_on_index THEN
+    DBMS_OUTPUT.PUT_line('Ya se han ingresado esos valores');
+    
+    WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_line('Error Desconocido');
+
+END;
+
+SET SERVEROUTPUT ON
+
+BEGIN
+  COPIA_E;
+END;
+
+
+--Ejercicio 4: Triggers
+--  Inciso a
+CREATE OR REPLACE TRIGGER TR1 
+BEFORE INSERT ON DEPARTMENTS 
+FOR EACH ROW
+DECLARE
+ CURSOR C4 IS SELECT*FROM DEPARTMENTS;
+ 
+BEGIN 
+    FOR i IN C4 LOOP
+        IF :NEW.DEPARTMENT_ID=i.DEPARTMENT_ID THEN
+            RAISE_APPLICATION_ERROR(-20000,'El Codigo Ya Existe');            
+        END IF;
+    END LOOP;       
+    IF :NEW.LOCATION_ID is Null THEN
+        :NEW.LOCATION_ID:=700;
+    END IF;
+                
+    IF :NEW.MANAGER_ID is Null THEN
+        :NEW.MANAGER_ID:=200;
+    END IF;    
+END;
+
+
+
+--Inciso b
+
+--Creación de la tabla auditoria
+/*CREATE TABLE AUDITORIA ( 
+ USUARIO VARCHAR(50), 
+ FECHA DATE, 
+ SALARIO_ANTIGUO NUMBER, 
+SALARIO_NUEVO NUMBER); 
+*/
+CREATE OR REPLACE TRIGGER TR2 
+BEFORE INSERT ON REGIONS 
+BEGIN
+    INSERT INTO AUDITORIA VALUES (USER, SYSDATE,0,0);
+END;
+
+
+--  Inciso c
+CREATE OR REPLACE TRIGGER TR3 
+BEFORE UPDATE ON EMPLOYEES 
+FOR EACH ROW
+
+BEGIN 
+    IF :OLD.SALARY>:NEW.SALARY THEN
+        RAISE_APPLICATION_ERROR(-20000, 'No se puede modificar el salario con un valor menor');
+    ELSE
+        INSERT INTO AUDITORIA VALUES (USER, SYSDATE,:OLD.SALARY,:NEW.SALARY);
+    END IF;
+         
+END;
+
+
+
