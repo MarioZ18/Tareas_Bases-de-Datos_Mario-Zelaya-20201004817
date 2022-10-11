@@ -220,27 +220,27 @@ CREATE OR REPLACE TRIGGER TR1
 BEFORE INSERT ON DEPARTMENTS 
 FOR EACH ROW
 DECLARE
- CURSOR C4 IS SELECT*FROM DEPARTMENTS;
+    CURSOR C4 IS SELECT DEPARTMENT_ID FROM DEPARTMENTS;
  
 BEGIN 
     FOR i IN C4 LOOP
-        IF :NEW.DEPARTMENT_ID=i.DEPARTMENT_ID THEN
-            RAISE_APPLICATION_ERROR(-20000,'El Codigo Ya Existe');            
+        IF i.DEPARTMENT_ID = :NEW.DEPARTMENT_ID THEN
+            RAISE_APPLICATION_ERROR(-20000,'El Codigo Ya Existe');
         END IF;
+        
     END LOOP;       
-    IF :NEW.LOCATION_ID is Null THEN
-        :NEW.LOCATION_ID:=700;
-    END IF;
-                
-    IF :NEW.MANAGER_ID is Null THEN
-        :NEW.MANAGER_ID:=200;
-    END IF;    
+   IF :NEW.LOCATION_ID is Null THEN
+            :NEW.LOCATION_ID:=1700;
+        END IF;
+                     
+        IF :NEW.MANAGER_ID is Null THEN
+            :NEW.MANAGER_ID:=200;
+         END IF; 
 END;
 
 
 
 --Inciso b
-
 --Creación de la tabla auditoria
 /*CREATE TABLE AUDITORIA ( 
  USUARIO VARCHAR(50), 
